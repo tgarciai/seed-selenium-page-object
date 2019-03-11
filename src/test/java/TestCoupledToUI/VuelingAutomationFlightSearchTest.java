@@ -1,3 +1,5 @@
+package TestCoupledToUI;
+
 import ch.qos.logback.classic.Logger;
 import org.junit.Assert;
 import org.junit.Test;
@@ -11,7 +13,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.LoggerFactory;
 import java.lang.invoke.MethodHandles;
 
-public class WebDriverOptionsTest {
+public class VuelingAutomationFlightSearchTest {
 
     private static final Logger LOGGER  = (Logger) LoggerFactory.getLogger(MethodHandles.lookup().lookupClass().getName());
     private static final String EXPECTED_RESULT = "Tu búsqueda:";
