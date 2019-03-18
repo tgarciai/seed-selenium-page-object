@@ -19,8 +19,6 @@ public class VuelingAutomationFlightSearchTest {
     private static final String EXPECTED_RESULT = "Tu búsqueda:";
     private static final int TIME_OUT_IN_SECONDS = 20;
     private static final String URL = "https://www.vueling.com/es";
-    private static final String WEBDRIVER_CHROME_DRIVER = "webdriver.chrome.driver";
-    private static final String CHROMEDRIVER_PATH = "/Users/tirsogarciaibanez1/Downloads/chromedriver";
     private static final String ORIGIN_INPUT_CSS_SELECTOR = "#tab-search div.form-input.origin input";
     private static final String DESTINATION_INPUT_CSS_SELECTOR = "#tab-search div.form-input.destination input";
     private static final String RESULT_CSS_SELECTOR = "#research > div.colRow2.sectionTable.height39 > h3";
@@ -46,7 +44,7 @@ public class VuelingAutomationFlightSearchTest {
     }
 
     private void initializeWebDriver() {
-        System.setProperty(WEBDRIVER_CHROME_DRIVER, CHROMEDRIVER_PATH);
+        System.setProperty(ChromeDriverConfig.WEBDRIVER_CHROME_DRIVER, ChromeDriverConfig.CHROMEDRIVER_PATH);
         LOGGER.debug("WebDriver Start");
         driver = new ChromeDriver();
         driver.manage().window().maximize();
