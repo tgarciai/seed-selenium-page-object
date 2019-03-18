@@ -1,28 +1,164 @@
-plugins {
-    id 'java'
+/**
+ * Plugins definitions
+ */
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+    }
+    dependencies {
+        classpath("net.serenity-bdd:serenity-gradle-plugin:$serenityGradlePlugin")
+    }
 }
+plugins {
+    id 'idea'
+    id 'groovy'
+    id 'maven-publish'
+    id 'de.undercouch.download' version '3.2.0'
+}
+apply plugin: 'net.serenity-bdd.aggregator'
+import de.undercouch.gradle.tasks.download.Download
 
-group 'com.lasalle.vueling'
-version '1.0-SNAPSHOT'
-
-sourceCompatibility = 1.8
-
+/**
+ * Dependencies
+ */
 repositories {
-    mavenCentral()
+    mavenLocal()
+    jcenter()
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    // Logger
+    compile group: 'ch.qos.logback', name: 'logback-core', version: logbackVersion
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: logbackVersion
 
-    // https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java
-    testCompile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '3.141.59'
+    // BDD: Cucumber - Serenity
+    compile("net.serenity-bdd:serenity-core:${serenityVersion}")
+    compile("net.serenity-bdd:serenity-rest-assured:${serenityVersion}")
+    compile("net.serenity-bdd:serenity-cucumber:${serenityCucumberVersion}")
 
-
-    // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-    testCompile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
-
-
-    // https://mvnrepository.com/artifact/org.assertj/assertj-core
-    testCompile group: 'org.assertj', name: 'assertj-core', version: '3.11.1'
-
+    // Assertions
+    testCompile group: 'junit', name: 'junit', version: junitVersion
+    testCompile group: 'org.assertj', name: 'assertj-core', version: assertjVersion
+    testCompile group: 'org.hamcrest', name: 'hamcrest-core', version: hamcrestVersion
 }
+
+/**
+ * Compilation and testing properties
+ */
+tasks.withType(GroovyCompile) {
+    options.encoding = "UTF-8" // for Java compilation
+    groovyOptions.encoding = "UTF-8" // for Groovy compilation
+}
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-Xlint:-options"
+    options.encoding = 'UTF-8'
+}
+test {
+    testLogging.showStandardStreams = true
+}
+compileJava.dependsOn clean
+
+/**
+ * Publish
+ */
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+artifacts {
+    archives sourcesJar, javadocJar
+}
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+
+// Also we can download a portable version of FF
+// https://www.firefox-usb.com/download/FirefoxPortable64-${firefoxVersion}.zip
+def chromedriverStorage = "https://chromedriver.storage.googleapis.com"
+def donwloadChrome = "https://download-chromium.appspot.com/dl"
+def lastChromeDriver = "$buildDir/tmp/LATEST_RELEASE"
+def chromeDriverServer = "$buildDir/tmp/chromeDriver.zip"
+
+task getChromeDriverLastVersion(type: Download) {
+    doFirst {
+        String osName = org.gradle.internal.os.OperatingSystem.current().getName();
+        String osVersion = org.gradle.internal.os.OperatingSystem.current().getVersion();
+        println ""
+        println ":getChromeDriverLastVersion"
+        src "${chromedriverStorage}/LATEST_RELEASE"
+        dest new File(lastChromeDriver)
+    }
+}
+
+task downloadChromeDriverServer(type: Download) {
+    doFirst{
+        getChromeDriverLastVersion.execute()
+
+        def driverVersionFile = new File(lastChromeDriver)
+        def driverVersion = driverVersionFile.text.trim()
+        String osName = org.gradle.internal.os.OperatingSystem.current().getName();
+        String osVersion = org.gradle.internal.os.OperatingSystem.current().getVersion();
+        println ""
+        println ":downloadChromeDriverServer for $osName $osVersion"
+        def chromeOS
+        if (org.gradle.internal.os.OperatingSystem.current().isLinux()) {
+            chromeOS = 'linux64'
+        } else if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+            chromeOS = 'win32'
+        } else if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
+            chromeOS = 'mac64'
+        }
+        src "${chromedriverStorage}/${driverVersion}/chromedriver_${chromeOS}.zip"
+        dest new File(chromeDriverServer)
+    }
+    doLast {
+        unzipChromeServerDriver.execute()
+    }
+}
+
+task unzipChromeServerDriver(type: Copy) {
+    from zipTree(chromeDriverServer)
+    into "bin"
+}
+
+def chromeBrowser="$buildDir/tmp/chromeBrowser.zip"
+task downloadChromeBrowser(type: Download) {
+    doFirst {
+        def chromeOS
+        if (org.gradle.internal.os.OperatingSystem.current().isLinux()) {
+            chromeOS ='Linux_x64'
+        } else if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+            chromeOS ='Win'
+        } else if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
+            chromeOS ='Mac'
+        }
+        // https://download-chromium.appspot.com/dl/Win?type=snapshots
+        src "${donwloadChrome}/${chromeOS}?type=snapshots"
+        dest new File(chromeBrowser)
+    }
+
+    doLast {
+        unzipChromeBrowser.execute()
+    }
+}
+
+task unzipChromeBrowser(type: Copy) {
+    from zipTree(chromeBrowser)
+    into "bin"
+}
+
+
+// downloadChromeBrowser
+// downloadChromeDriverServer
+
