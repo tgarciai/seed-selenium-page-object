@@ -1,20 +1,18 @@
 # selenium
 Selenium Page Object Model
 
-El projecto desarrollado de tres formas:
+This seed is developed to show how to develop an scalable automatization for browser apps:
 
-1.- Test Automatizado con la lógica altamente acoplada a la ux
+1.- Automation test closely coupled to UI(the wrong way)
 
-2.- Test Automatizado con la lógica desacoplada de la ux vía pageobject pattern (sin frameworks)
+2.- Automation test decoupled from UI via PageObject pattern (no frameworks)
 
-3.- Test Automatizado con la lógica desacoplada de la ux vía pageobject pattern (cucumber y otros patrones)
+3.- TAutomation test decoupled from UI via PageObject pattern (cucumber and others frameworks)
 
-Ejecución de los tests
 
-Buildear el projecto gradle vía command line o vía intellij
+Test Execution:
 
-Ejecución de los test vía la task "test" de gradle.
+launch the gradle task "test"
 
-Nota: Para que 1 y 2 funcionen
 
-Modificar ChromeDriverConfig el path donde tienes instalado el driver de chrome para selenium.
+Note: 1 and 2 requires an uptate ChromeDriverConfig with the local path that the chrome driver its installed.
